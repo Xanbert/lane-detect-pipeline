@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package image;
+
+message Image {
+  bytes pixels = 1;
+  int32 width = 2;
+  int32 height = 3;
+}
+
+service ImageService {
+  rpc SendImage (Image) returns (Empty);
+}
+
+// 空消息，用于没有内容传输的情况
+message Empty {}
