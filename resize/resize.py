@@ -1,14 +1,18 @@
 from concurrent import futures
+import image_pb2_grpc
+import image_pb2
+import grpc
 
 import numpy as np
 import cv2
+import os
 
 resize_width = 512
 resize_height = 256
 mean = [0.485, 0.456, 0.406]
 std = [0.229, 0.224, 0.225]
 
-server = os.getenv(\"MAIN_SERVER\")
+server = os.getenv("MAIN_SERVER")
 
 
 def data_trans(image):
@@ -30,7 +34,7 @@ class ImageRecv(image_pb2_grpc.ImageServiceServicer):
         pixels = data_trans(pixels)
         height = resize_height
         width = resize_width
-        pixels = pixels.flatten.tobytes()
+        pixels = pixels.flatten().tobytes()
         with grpc.insecure_channel(server) as channel:
             stub = image_pb2_grpc.ImageServiceStub(channel)
             response = stub.SendImage(
