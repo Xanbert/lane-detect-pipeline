@@ -1,9 +1,13 @@
-import cv2
+from kafka import KafkaConsumer
+
+import os
 
 import grpc
 import image_pb2
 import image_pb2_grpc
 import numpy as np
+
+broker = os.getenv("BROKER")
 
 
 def denoise(img):
@@ -13,15 +17,17 @@ def denoise(img):
 
 
 def main():
+    consumer = KafkaConsumer('pics', bootstrap_servers=[broker])
     with grpc.insecure_channel('localhost:50051') as channel:
         stub = image_pb2_grpc.ImageServiceStub(channel)
-        image = cv2.imread("test_input.jpg")
-        image = denoise(image)
-        height, width, _ = image.shape
-        pixels = image.flatten().astype(np.uint8).tobytes()
-        response = stub.SendImage(
-            image_pb2.Image(pixels=pixels, width=width, height=height))
-        print("Image sent successfully.")
+        for msg in consumer:
+            image = msg.value
+            image = denoise(image)
+            height, width, _ = image.shape
+            pixels = image.flatten().astype(np.uint8).tobytes()
+            response = stub.SendImage(
+                image_pb2.Image(pixels=pixels, width=width, height=height))
+            print("Image sent successfully.")
 
 
 if __name__ == '__main__':
